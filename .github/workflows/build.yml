@@ -17,6 +17,7 @@ jobs:
           pip install buildozer cython==0.29.36 kivy==2.3.0 requests
       - name: Auto-generate Settings and Build APK
         run: |
+          rm -f buildozer.spec
           buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.3.0,requests,certifi,urllib3,idna,charset-normalizer/g' buildozer.spec
           echo "pip_args = --no-binary=:all:" >> buildozer.spec
