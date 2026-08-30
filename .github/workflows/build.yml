@@ -12,23 +12,26 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update || true
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libgdbm-dev libsqlite3-dev libbz2-dev libreadline-dev libffi-dev wget curl lzma liblzma-dev
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libgdbm-dev libsqlite3-dev libbz2-dev libreadline-dev libffi-dev wget curl lzma liblzma-dev Altgraph Packaging Pefile Pyinstaller-hooks-contrib Pywin32-ctypes Setuptools
           pip install --upgrade pip
-          pip install buildozer cython==0.29.36 kivy==2.3.0 requests
-      - name: Auto-generate Settings and Build APK
+          pip install cython==0.29.36 kivy==2.3.0 requests certifi urllib3 idna charset-normalizer python-for-android
+      - name: Setup Android SDK and NDK
         run: |
-          rm -f buildozer.spec
-          buildozer init
-          sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.3.0,requests,certifi,urllib3,idna,charset-normalizer/g' buildozer.spec
-          sed -i 's/#android.ndk = 25b/android.ndk = 25b/g' buildozer.spec
-          sed -i 's/android.ndk = 28c/android.ndk = 25b/g' buildozer.spec
-          echo "android.ndk = 25b" >> buildozer.spec
-          echo "pip_args = --no-binary=:all:" >> buildozer.spec
-          export P4A_android_ndk_version=25b
-          export ANDROID_NDK_VERSION=25b
-          yes | buildozer android debug
+          mkdir -p /home/runner/android/sdk/cmdline-tools/latest
+          wget -q https://google.com
+          unzip -q commandlinetools-linux-9477386_latest.zip
+          mv cmdline-tools/* /home/runner/android/sdk/cmdline-tools/latest/
+          export SDKMANAGER="/home/runner/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          yes | $SDKMANAGER --sdk_root=/home/runner/android/sdk "platform-tools" "build-tools;33.0.0" "platforms;android-33"
+          wget -q https://google.com
+          unzip -q android-ndk-r25b-linux.zip -d /home/runner/android/
+      - name: Build APK via Python for Android
+        run: |
+          export ANDROIDSDK="/home/runner/android/sdk"
+          export ANDROIDNDK="/home/runner/android/android-ndk-r25b"
+          p4a apk --private . --package=org.test.ipreporter --name="IP Reporter" --version=0.1 --bootstrap=sdl2 --requirements=python3,kivy==2.3.0,requests,certifi,urllib3,idna,charset-normalizer --arch=arm64-v8a --sdk-dir=$ANDROIDSDK --ndk-dir=$ANDROIDNDK --android-api=33 --min-api=21 --release
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: package
-          path: bin/*.apk
+          path: "*.apk"
