@@ -21,9 +21,11 @@ jobs:
           buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.3.0,requests,certifi,urllib3,idna,charset-normalizer/g' buildozer.spec
           sed -i 's/#android.ndk = 25b/android.ndk = 25b/g' buildozer.spec
-          sed -i 's/android.ndk = 25b/android.ndk = 25b/g' buildozer.spec
+          sed -i 's/android.ndk = 28c/android.ndk = 25b/g' buildozer.spec
+          echo "android.ndk = 25b" >> buildozer.spec
           echo "pip_args = --no-binary=:all:" >> buildozer.spec
           export P4A_android_ndk_version=25b
+          export ANDROID_NDK_VERSION=25b
           yes | buildozer android debug
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
